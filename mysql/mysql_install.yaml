@@ -1,0 +1,38 @@
+- hosts: all
+  remote_user: root
+  tasks: 
+    - name: copy mysql binary to remote host
+      unarchive: 
+        src: /root/source/mysql-5.7.17-linux-glibc2.5-x86_64.tar.gz
+        dest: /usr/local
+        copy: true
+        creates: /usr/local/mysql-5.7.17-linux-glibc2.5-x86_64
+        owner: mysql
+        group: mysql
+    - name: create mysql dirctory
+      file:
+        path: "{{ item.path }}"
+        owner: mysql
+        group: mysql
+        mode: "{{ item.mode }}"
+        recurse: yes
+        state: directory
+      with_items:
+        - { path: '/home/mysql/3307/mysql', mode: '755' }
+        - { path: '/home/mysql/3307/data', mode: '700' }
+        - { path: '/home/mysql/3307/tmp', mode: '755' }
+        - { path: '/home/mysql/conf', mode: '755' }
+    - name: create symlink 
+      file:
+        src: /usr/local/mysql-5.7.17-linux-glibc2.5-x86_64
+        path: /usr/local/mysql
+        state: link
+    - name: copy mysql config file to remote host
+      copy:
+        src: /home/mysql/my3307.cnf
+        dest: /home/mysql/conf/my3307.cnf
+        mode: 0644
+    - name: initialize mysql database
+      shell: "/usr/local/mysql/bin/mysqld --defaults-file=/home/mysql/conf/my3307.cnf --initialize  --initialize-insecure --user=mysql" 
+      args:
+        chdir: /usr/local/mysql
