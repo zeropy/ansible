@@ -1,0 +1,13 @@
+---
+- hosts: all
+  remote_user: root
+  tasks: 
+    - name: add user 
+      user:
+        name: "{{ item.username }}"
+        createhome: yes
+        shell: /bin/bash
+        state: present
+        system: no
+      with_items:
+        - username: zero
