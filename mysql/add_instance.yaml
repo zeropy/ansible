@@ -1,0 +1,26 @@
+- hosts: master
+  remote_user: root
+  tasks:
+    - name: create mysql dirctory
+      file:
+        path: "{{ item.path }}"
+        owner: mysql
+        group: mysql
+        mode: "{{ item.mode }}"
+        recurse: yes
+        state: directory
+      with_items:
+        - { path: '/home/mysql/3308/mysql', mode: '755' }
+        - { path: '/home/mysql/3308/data', mode: '700' }
+        - { path: '/home/mysql/3308/tmp', mode: '755' }
+        - { path: '/home/mysql/conf', mode: '755' }
+    - name: copy mysql config file to remote host
+      copy:
+        src: /home/mysql/my3308.cnf
+        dest: /home/mysql/conf/my3308.cnf
+        mode: 0644
+    - name: initialize mysql database
+      shell: /usr/local/mysql/bin/mysqld --defaults-file=/home/mysql/conf/my3308.cnf --initialize  --initialize-insecure --user=mysql
+      args:
+        chdir: /usr/local/mysql
+
