@@ -1,0 +1,43 @@
+---
+- hosts: all
+  remote_user: root
+  tasks:
+    - name: copy zabbix to remote host
+      unarchive:
+        src: "/root/source/{{item.version}}.tar.gz"
+        dest: /usr/src
+        copy: true
+      with_items:
+        - { version: zabbix-3.0.4 }
+    - name: add user zabbix
+      user:
+        name: zabbix
+        system: true
+        createhome: no
+        shell: /sbin/nologin
+    - name: install zabbix agent
+      command: ./configure --prefix=/usr/local/zabbix --enable-agent
+      args:
+        chdir: "/usr/src/{{item.version}}"
+      with_items:
+        - { version: zabbix-3.0.4 }
+    - name: make
+      command: make
+      args:
+        chdir: "/usr/src/{{item.version}}"
+      with_items:
+        - { version: zabbix-3.0.4 }
+    - name: make install
+      command: make install
+      args:
+        chdir: "/usr/src/{{item.version}}"
+      with_items:
+        - { version: zabbix-3.0.4 }
+    - name: replace zabbix config file
+      copy:
+        src: /root/source/zabbix_agentd.conf
+        dest: /usr/local/zabbix/etc/zabbix_agentd.conf
+        force: yes
+        owner: zabbix
+        group: zabbix
+       
